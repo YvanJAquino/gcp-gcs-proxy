@@ -8,7 +8,7 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
 - Support for basic, key operations: gCSP provides endpoints that map to GCS' JSON API for listing buckets, listing objects in a bucket, and getting object-level metadata: 
 
     | Endpoint | Purpose |
-    | --- | --- |
+    | :-- | :-- |
     | /storage/v1/b | listing buckets |
     | /storage/v1/b/BUCKET/o | listing objects in BUCKET |
     | /storage/v1/b/BUCKET/o/OBJECT | listing object metadata |
@@ -45,15 +45,15 @@ docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 # Target User Journeys
 
 | As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/\*/\*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
-| --- |
+| :-- |
 | Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
 
 | As a developer, I need to access or publicly display objects that are either private or exist within a private bucket |
-| --- |
+| :-- |
 | You have objects within a bucket that are either inaccessible publicly or the bucket in question has uniform access control policy for internal access only.  gCSP uses the running service's attached service account to access Cloud Storage, side-stepping this issue.  This has the added benefit of protecting the object's URL from direct abuse. |
 
 | As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
-| --- |
+| :-- |
 | gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways.  gCSP can be run as a standalone binary in the background of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service.  Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host, and require service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
 
 # Planned features
