@@ -54,11 +54,7 @@ docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 
 | As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
 | :-- |
-| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways.  
-
-Run as a standalone binary in the background of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service.  
-
-Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host, and requring service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
+| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host, and requring service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
