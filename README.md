@@ -93,7 +93,6 @@ gCSP-AP can be configured through runtime environment variables.  These MUST be 
 - Advanced caching eviction strategies.  In particular:
     - LRU (Least Recently Used) eviction strategy
     - LFU (Least Frequencly Used) eviction strategy
-- gCSP Authentication Proxy:  A small, simple proxy that accepts requests from the web applications local host and adds an Authorization header to outgoing requests for   service-to-service authentication to a separately run gCSP instance.
 - Traditional configuration options through environment variables.  
 - Usage examples that align to each of the Target User Journeys
 - Documentation.  
