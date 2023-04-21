@@ -44,7 +44,9 @@ docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 
 ## Manual Deployments - Building the proxy from source
 
-You can build the binary locally if you have Go 1.18 or greater installed.  This deployment method is ideal if you're going to run gCSP as background process on the same host that's serving your web application.
+You can build the binary locally if you have Go 1.18 or greater installed.  This deployment method is ideal if you're going to run gCSP as background process on the same host that's serving your web application.  
+
+When containerizing your web application, you can use this snippet below in a separate build step to build the binary, copy it to the final execution step, and then run it in the background.  
 
 ```
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
