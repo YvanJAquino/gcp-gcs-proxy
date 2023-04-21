@@ -1,4 +1,4 @@
-package proxy
+package gcs
 
 import (
 	"encoding/json"

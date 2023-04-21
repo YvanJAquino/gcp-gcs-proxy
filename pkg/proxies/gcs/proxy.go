@@ -1,4 +1,4 @@
-package proxy
+package gcs
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 
-	"github.com/YvanJAquino/gcp-gcs-proxy/service/cache"
+	cache "github.com/YvanJAquino/gcp-gcs-proxy/pkg/caching/basic"
 )
 
 const (

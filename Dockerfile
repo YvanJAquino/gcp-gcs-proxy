@@ -2,7 +2,7 @@
 FROM    golang:1.18-buster as builder
 WORKDIR /app
 COPY    . ./
-RUN     go build -o service
+RUN     go build -ldflags="-w -s" -o service ./cmd/gcs-proxy
 
 FROM    debian:buster-slim
 RUN     set -x && \

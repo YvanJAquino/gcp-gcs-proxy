@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/YvanJAquino/gcp-gcs-proxy/service/proxy"
+	proxy "github.com/YvanJAquino/gcp-gcs-proxy/pkg/proxies/gcs"
 )
 
 var (

@@ -3,7 +3,6 @@ steps:
 - id: docker-build-push-gcp-gcs-proxy
   waitFor: ['-']
   name: gcr.io/cloud-builders/docker
-  dir: service
   entrypoint: bash
   args:
     - -c
