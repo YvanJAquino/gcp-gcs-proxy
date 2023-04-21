@@ -33,11 +33,11 @@ gcloud builds submit
 
 ## Manual Deployments - Building the container with Docker
 
-You can manually build the container and store it in the container registry for usage on other platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
+You can manually build the container and store it in the Container Registry for usage on other compute platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
 
 ```
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
-cd gcp-gcs-proxy/service
+cd gcp-gcs-proxy
 docker build -t gcr.io/PROJECT_ID/gcp-gcs-proxy . 
 docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 ```
@@ -50,10 +50,30 @@ When containerizing your web application, you can use this snippet below in a se
 
 ```
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
-cd gcp-gcs-proxy/service
-go build -ldflags="-w -s" -o gcsp-proxy
+cd gcp-gcs-proxy
+go build -ldflags="-w -s" -o gcsp-proxy ./cmd/gcs-proxy
 ```
 
+## Building and running the gCSP Auth Proxy (gCSP-AP)
+
+gCSP's Auth Proxy (gCSP-AP) adds an OIDC identity token generated from Compute Engine's metadata server process to outgoing requests to gCSP.  gCSP-AP is required when gCSP is deployed separately on a service that requires service-to-service authentication.  gCSP-AP designed to run as a background process in the same host that's serving your web application.  
+
+
+```shell
+git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
+cd gcp-gcs-proxy
+go build -ldflags="-w -s" -o auth-proxy ./cmd/auth-proxy
+```
+
+gCSP-AP requires further configuration of the web application's server so that outbound requests from the web app pass through gCSP-AP instead.   
+
+### Configuring gCSP-AP
+gCSP-AP can be configured through runtime environment variables.  These MUST be provided for gCSP-AP to work properly:
+
+| name | purpose | 
+| :-- | :-- | 
+| GCSP_PROXY_PORT | gCSP-AP's serving port |
+| GCSP_TARGET_ADDR | gCSP's address | 
 
 # Target User Journeys
 
