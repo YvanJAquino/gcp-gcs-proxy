@@ -3,7 +3,7 @@
 Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's fully-managed object storage service.  gCSP's API endpoints map to some of Cloud Storage's JSON API endpoints to provide extra utility such as listing buckets, listing objects, and getting object metadata in addition to it's core functionality: getting object data (media) from GCS.  
 
 # Features
-- Simple: gCSP is easy for administrators to set-up and easy for developers to use.  Under the hood, gCSP compiles to a single binary with no required operating system binaries.  
+- Simple: gCSP is easy for administrators to set-up and easy for developers to use.  Under the hood, gCSP compiles to a single binary with no required operating system dependencies.  
 - Stateless:  gCSP happily lives in ephemeral containers. 
 - Support for basic, key operations: gCSP provides endpoints that map to GCS' JSON API for listing buckets, listing objects in a bucket, and getting object-level metadata: 
 
@@ -31,7 +31,7 @@ cd gcp-gcs-proxy
 gcloud builds submit
 ```
 
-## Manual Deployments
+## Manual Deployments - Building the container with Docker
 
 You can manually build the container and store it in the container registry for usage on other platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
 
@@ -41,6 +41,17 @@ cd gcp-gcs-proxy/service
 docker build -t gcr.io/PROJECT_ID/gcp-gcs-proxy . 
 docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 ```
+
+## Manual Deployments - Building the proxy from source
+
+You can build the binary locally if you have Go 1.18 or greater installed.  This deployment method is ideal if you're going to run gCSP as background process on the same host that's serving your web application.
+
+```
+git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
+cd gcp-gcs-proxy/service
+go build -ldflags="-w -s" -o gcsp-proxy
+```
+
 
 # Target User Journeys
 
@@ -54,7 +65,7 @@ docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 
 | As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
 | :-- |
-| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host, and requring service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
+| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
