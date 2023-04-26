@@ -15,7 +15,7 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
     | /storage/v1/b/BUCKET/o/OBJECT?alt=media | getting object data |
 
 - Service agnostic: Run gCSP anywhere containers are accepted like Cloud Run, GKE, GCE, or App Engine Flex.  Alternatively, build from source and run as a background process on the same host as your web application.
-- Caching:  gCSP uses basic caching by default.  Advanced caching options are planned for a future release (LRU and LFU caching).  
+- Caching:  gCSP uses LRU caching by default.  Basic caching (random eviction) is also available; LFU caching is planned for a future release .  
 
 # Deployment
 
@@ -91,7 +91,6 @@ gCSP-AP can be configured through runtime environment variables.  These MUST be 
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
-    - LRU (Least Recently Used) eviction strategy
     - LFU (Least Frequencly Used) eviction strategy
 - Traditional configuration options through environment variables.  
 - Usage examples that align to each of the Target User Journeys
