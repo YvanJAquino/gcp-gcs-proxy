@@ -15,7 +15,21 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
     | /storage/v1/b/BUCKET/o/OBJECT?alt=media | getting object data |
 
 - Service agnostic: Run gCSP anywhere containers are accepted like Cloud Run, GKE, GCE, or App Engine Flex.  Alternatively, build from source and run as a background process on the same host as your web application.
-- Caching:  gCSP uses LRU caching by default.  Basic caching (random eviction) is also available; LFU caching is planned for a future release .  
+- Caching:  gCSP uses LRU caching by default.  Basic caching (random eviction) is also available; LFU caching is planned for a future release.
+
+# Target User Journeys
+
+| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/\*/\*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
+| :-- |
+| Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
+
+| As a developer, I need to access or publicly display objects that are either private or exist within a private bucket |
+| :-- |
+| You have objects within a bucket that are either inaccessible publicly or the bucket in question has uniform access control policy for internal access only.  gCSP uses the running service's attached service account to access Cloud Storage, side-stepping this issue.  This has the added benefit of protecting the object's URL from direct abuse. |
+
+| As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
+| :-- |
+| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. |
 
 # Deployment
 
@@ -144,21 +158,6 @@ Building locally:
 ```shell
 go build -ldflags="-w -s" -o gcsp-ap ./cmd/auth-proxy
 ```
-
-
-# Target User Journeys
-
-| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/\*/\*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
-| :-- |
-| Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
-
-| As a developer, I need to access or publicly display objects that are either private or exist within a private bucket |
-| :-- |
-| You have objects within a bucket that are either inaccessible publicly or the bucket in question has uniform access control policy for internal access only.  gCSP uses the running service's attached service account to access Cloud Storage, side-stepping this issue.  This has the added benefit of protecting the object's URL from direct abuse. |
-
-| As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
-| :-- |
-| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. |
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
