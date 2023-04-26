@@ -3,6 +3,7 @@ package gcs
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,7 +13,8 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 
-	cache "github.com/YvanJAquino/gcp-gcs-proxy/pkg/caching/basic"
+	caching "github.com/YvanJAquino/gcp-gcs-proxy/pkg/caching"
+	cache "github.com/YvanJAquino/gcp-gcs-proxy/pkg/caching/lru"
 )
 
 const (
@@ -23,7 +25,7 @@ const (
 type StorageProxy struct {
 	client    *storage.Client
 	projectID string
-	cache     *cache.Cache
+	cache     caching.Cache
 }
 
 // Constructors
@@ -31,7 +33,7 @@ type StorageProxy struct {
 func New(client *storage.Client) *StorageProxy {
 	return &StorageProxy{
 		client: client,
-		cache:  cache.New(),
+		cache:  cache.New(caching.Megabyte*500, 70),
 	}
 }
 
@@ -186,7 +188,13 @@ func (p *StorageProxy) getObject(w http.ResponseWriter, r *http.Request, b, o st
 
 	// If the cache contains the CRC32c hash already, use the cache.
 	if p.cache.Contains(attrs.CRC32C) {
-		cr := p.cache.Data(attrs.CRC32C)
+		cr, ok := p.cache.Data(attrs.CRC32C)
+		if !ok {
+			http.Error(w, fmt.Sprintf("Hash %v not in cache", attrs.CRC32C), http.StatusInternalServerError)
+			log.Println(err)
+			return
+
+		}
 		_, err = io.Copy(w, cr)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -1,7 +1,8 @@
-package basic
+package lru
 
 import (
 	"bytes"
+	"container/list"
 	"io"
 	"log"
 	"sync"
@@ -17,32 +18,36 @@ var (
 )
 
 type Cache struct {
-	items            map[uint32]*caching.Object
-	mu               sync.RWMutex
-	cap, size, bound uint64
+	items   map[uint32]*list.Element
+	recency *list.List
+	size    uint64
+	cap     uint64
+	bound   uint64
+	mu      sync.RWMutex
 }
 
 // Constructors
 
 func New(cap, ratio uint64) *Cache {
 	bound := (ratio * cap) / 100
-	log.Printf("CACHE ADM new cache created BOUND: %v / CAP: %v", bound, cap)
+	log.Printf("LRU CACHE ADM new cache created BOUND: %v / CAP: %v", bound, cap)
 	return &Cache{
-		items: make(map[uint32]*caching.Object),
-		cap:   cap,
-		bound: bound,
+		items:   make(map[uint32]*list.Element),
+		recency: list.New(),
+		size:    0,
+		cap:     cap,
+		bound:   bound,
 	}
 }
 
 // Private methods
 
-// Random eviction
+// LRU Eviction
 func (c *Cache) evict() {
-	for key, item := range c.items {
-		delete(c.items, key)
-		if AddU64(&c.size, -item.Size) < LoadU64(&c.bound) {
-			return
-		}
+	for LoadU64(&c.size) > LoadU64(&c.bound) {
+		item := c.recency.Remove(c.recency.Back()).(*caching.Object)
+		AddU64(&c.size, -item.Size)
+		delete(c.items, item.Hash)
 	}
 }
 
@@ -63,10 +68,12 @@ func (c *Cache) Set(o *caching.Object) {
 	if AddU64(&c.size, o.Size) > LoadU64(&c.cap) {
 		c.evict()
 	}
+
 	c.mu.Lock()
-	c.items[o.Hash] = o
+	c.items[o.Hash] = c.recency.PushFront(o)
 	c.mu.Unlock()
-	log.Printf("CACHE SET %s identified by hash %v - object size %v - size %v", o.Name, o.Hash, o.Size, c.size)
+
+	log.Printf("LRU CACHE SET %s identified by hash %v - object size %v - size %v", o.Name, o.Hash, o.Size, c.size)
 }
 
 func (c *Cache) SetFrom(attrs *storage.ObjectAttrs, reader io.Reader) (*caching.Object, error) {
@@ -80,14 +87,22 @@ func (c *Cache) SetFrom(attrs *storage.ObjectAttrs, reader io.Reader) (*caching.
 
 func (c *Cache) Get(hash uint32) (*caching.Object, bool) {
 	c.mu.RLock()
-	obj, ok := c.items[hash]
+	elem, ok := c.items[hash]
 	c.mu.RUnlock()
+	if !ok {
+		return nil, ok
+	}
+	// Is this necessary?
+	c.mu.Lock()
+	c.recency.MoveToFront(elem)
+	c.mu.Unlock()
+
 	if ok {
-		log.Printf("CACHE GET [HIT] hash %v identified by name %s", hash, obj.Name)
+		log.Printf("CACHE GET [HIT] hash %v identified by name %s", hash, elem.Value.(*caching.Object).Name)
 	} else {
 		log.Printf("CACHE GET [MISS] unable to find hash %v in cache", hash)
 	}
-	return obj, ok
+	return elem.Value.(*caching.Object), ok
 }
 
 func (c *Cache) Data(hash uint32) (*bytes.Reader, bool) {
