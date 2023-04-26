@@ -23,7 +23,7 @@ Deployment will depend on how you want to deploy - and to what platform you want
 
 ## Default Deployment (Cloud Run)
 
-The default deployment targets Cloud Run using Cloud Build.  Cloud Build will build the container, store it in the container registry (gcr.io/PROJECT_ID/gcp-gcs-proxy), and then deploy gCSP to Cloud Run with no CPU throttling and requiring authentication.  
+The default deployment targets Cloud Run using Cloud Build.  Cloud Build will build the container, store it in the container registry (gcr.io/PROJECT_ID/gcp-gcs-proxy), and then deploy gCSP to Cloud Run with no CPU throttling and requiring authentication.  This deployment model is meant to be used in conjunction with gCSP-AP. 
 
 ```shell
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
@@ -87,7 +87,7 @@ gCSP-AP can be configured through runtime environment variables.  These MUST be 
 
 | As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
 | :-- |
-| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options that proxy requests back to the locally running gCSP service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. A local authentication proxy (that add's a token to outgoing requests) for GCP compute services is planned for a later release. |
+| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. |
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
