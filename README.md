@@ -62,7 +62,7 @@ gCSP's Auth Proxy (gCSP-AP) adds an OIDC identity token generated from Compute E
 ```shell
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
 cd gcp-gcs-proxy
-go build -ldflags="-w -s" -o auth-proxy ./cmd/auth-proxy
+go build -ldflags="-w -s" -o gcsp-ap ./cmd/auth-proxy
 ```
 
 gCSP-AP requires further configuration of the web application's server so that outbound requests from the web app pass through gCSP-AP instead.   
@@ -74,6 +74,77 @@ gCSP-AP can be configured through runtime environment variables.  These MUST be 
 | :-- | :-- | 
 | GCSP_PROXY_PORT | gCSP-AP's serving port |
 | GCSP_TARGET_ADDR | gCSP's address | 
+
+# Testing
+
+Testing should be done incrementally, in steps, to ensure that each part of the system is operating as desired.
+
+Local testing requires that Go 1.18 or above is installed.
+
+## Default Deployment (gCSP on Cloud Run with gCSP-AP)
+
+Begin by deploying using the default deployment.  
+
+```shell
+git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
+cd gcp-gcs-proxy
+gcloud builds submit
+```
+
+This creates a service using the default name `gcp-gcs-proxy` in the default region `us-central1`.  We provide a port via GCSP_PROXY_PORT and the the service's URL as target address for gCSP-AP.  
+
+```shell
+export GCSP_PROXY_PORT=10274
+export SERVICE=gcp-gcs-proxy && \
+export REGION=us-central1 && \
+export GCSP_TARGET_ADDR=$(gcloud run services describe --region=$REGION --format="value(status.address.url)" $SERVICE)
+
+echo "gCSP-AP upstream is: $GCSP_TARGET_ADDR"
+```
+
+If you don't see your Cloud Run service's URL, consider doing a manual deployment until you find the problem.
+
+With the local environment configured, run gCSP-AP:
+
+```shell
+go run cmd/auth-proxy/main.go
+```
+
+```shell
+### OUTPUT ###
+2023/04/26 13:26:38 HOST:  - PORT: 10274 - TARGET: https://gcp-gcs-proxy-*.a.run.app
+2023/04/26 TargetURL: https://gcp-gcs-proxy-*.a.run.app
+2023/04/26 Serving traffic from :10274
+```
+
+From another shell, use curl to query gCSP-AP (which then queries gCSP running on Cloud Run!)
+
+```shell
+curl localhost:10274/storage/v1/b
+```
+```shell
+### OUTPUT ###
+[
+    "holy-diver-297719",
+    "holy-diver-297719-input",
+    "holy-diver-297719-labs",
+    "holy-diver-297719-output",
+    "holy-diver-297719-private",
+    "holy-diver-297719-public",
+    "holy-diver-297719-reports",
+    "holy-diver-297719.appspot.com",
+    "holy-diver-297719_cloudbuild",
+]
+```
+
+With tests out of the way, you can build gCSP-AP for continued local usage.  For deployment, it is recommended to build gCSP-AP in a separate build step, insert into your final container image, and then run gCSP-AP as a background process.  
+
+Building locally:
+
+```shell
+go build -ldflags="-w -s" -o gcsp-ap ./cmd/auth-proxy
+```
+
 
 # Target User Journeys
 

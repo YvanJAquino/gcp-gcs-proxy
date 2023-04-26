@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"golang.org/x/oauth2"
+	// "golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
 )
 
@@ -22,17 +23,17 @@ type AuthProxy struct {
 // Constructors
 
 func New(ctx context.Context, target string) *AuthProxy {
+	log.Printf("TargetURL: %s", target)
 	targetURL, err := url.Parse(target)
 	if err != nil {
 		panic(err)
 	}
 
-	source, err := idtoken.NewTokenSource(ctx, targetURL.Host)
+	source, err := idtoken.NewTokenSource(ctx, targetURL.String())
 	if err != nil {
 		panic(err)
 	}
 
-	// source := google.ComputeTokenSource("", ScopePlatform)
 	token, err := source.Token()
 	if err != nil {
 		panic(err)

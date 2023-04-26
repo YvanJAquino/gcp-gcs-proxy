@@ -22,6 +22,8 @@ var (
 )
 
 func main() {
+	log.Printf("HOST: %s - PORT: %s - TARGET: %s", GCSP_PROXY_HOST, GCSP_PROXY_PORT, GCSP_TARGET_ADDR)
+
 	parent := context.Background()
 
 	signals := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
