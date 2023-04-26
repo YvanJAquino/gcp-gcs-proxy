@@ -8,7 +8,6 @@ import (
 	"net/url"
 
 	"golang.org/x/oauth2"
-	// "golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
 )
 
