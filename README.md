@@ -193,6 +193,66 @@ Building locally:
 go build -ldflags="-w -s" -o gcsp-ap ./cmd/auth-proxy
 ```
 
+# Integrating gCSP-AP with Modern Javascript Frameworks.
+
+## Frameworks that use Vite 
+ 
+ Vite configuration documentation: https://vitejs.dev/config/
+
+Use Vite's proxy configuration option to route 'relative' traffic back to gCSP's running port.  In this example, traffic destined for /storage/v1/b is routed to http://localhost:1337/ since gCSP-AP is running on 1337.  
+
+```typescript
+// vite.config.ts for SolidJS
+export default defineConfig({
+  plugins: [solidPlugin()],
+  server: {
+    proxy: {
+      '/storage/v1/b': 'http://localhost:1337/'
+    },
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  build: {
+    target: 'esnext',
+  },
+});
+```
+
+Render storage images within your application as if they were locally available objects within `<img>` tags.
+
+```typescript
+import { createEffect, createSignal } from "solid-js";
+
+async function listBuckets() {
+	const result = await fetch('storage/v1/b');
+	return await result.text();
+}
+
+export default function Index() {
+	const [buckets, setBuckets] = createSignal('');
+	const [image, setImage] = createSignal('');
+
+	createEffect(() => {
+		listBuckets()
+			.then(text => setBuckets(text));
+	})
+
+	return (<>
+		<div>
+
+			<h1>Hello World!</h1>
+			<pre>
+				{buckets()}			
+			</pre>
+			<img 
+				src="storage/v1/b/super-mario-private/o/mario-is-awesome?alt=media"
+				width={500}
+			/>
+		</div>
+	</>)
+}
+```
+
 # Planned features
 - Advanced caching eviction strategies.  In particular:
     - LFU (Least Frequencly Used) eviction strategy
