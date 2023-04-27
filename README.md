@@ -19,7 +19,7 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
 
 # Target User Journeys
 
-| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/\*/*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
+| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/*/*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
 | :-- |
 | Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
 
