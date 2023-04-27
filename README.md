@@ -41,7 +41,8 @@ cd gcp-gcs-proxy
 gcloud builds submit
 ```
 
-## Manual Deployments - Building the container with DockerYou can manually build the container and store it in the Container Registry for usage on other compute platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
+## Manual Deployments - Building the container with Docker
+Manually build the container and store it in the Container Registry for usage on other compute platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
 
 ```
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
