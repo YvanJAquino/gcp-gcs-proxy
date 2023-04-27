@@ -19,17 +19,17 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
 
 # Target User Journeys
 
-| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/*/*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
+| As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/\*/*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
 | :-- |
 | Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
 
 | As a developer, I need to access or publicly display objects that are either private or exist within a private bucket |
 | :-- |
-| You have objects within a bucket that are either inaccessible publicly or the bucket in question has uniform access control policy for internal access only.  gCSP uses the running service's attached service account to access Cloud Storage, side-stepping this issue.  This has the added benefit of protecting the object's URL from direct abuse. |
+| You have objects within a bucket that are either inaccessible publicly or the bucket in question has uniform access control policy for internal access only.  gCSP uses the running service's attached service account to access Cloud Storage, side-stepping this issue. |
 
 | As an administrator, I'd like to prevent external users from accessing GCS URLs directly to prevent cost runs related to accidental or malicious usage. |
 | :-- |
-| gCSP is a reverse-proxy for Cloud Storage; it can address this use-case in various ways. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. |
+| gCSP is a reverse-proxy for Cloud Storage; reverse proxies protect backend resources. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. *Please note that this will not stop egress usage; that is calculated on a per byte basis of what's being rendered OUTSIDE OF GCP!*|
 
 # Deployment
 
@@ -68,7 +68,41 @@ cd gcp-gcs-proxy
 go build -ldflags="-w -s" -o gcsp-proxy ./cmd/gcs-proxy
 ```
 
-## Building and running the gCSP Auth Proxy (gCSP-AP)
+## Manual Deployments - Using Docker to build binaries if Go isn't installed locally.
+
+Docker is a powerful tool in the right hands.  If you don't have Go installed, you can wrap your shell scripts into a Dockerfile, mount a separate volume, and then copy the resulting binary to the mounted volume.
+
+1. create a new Dockerfile:
+```Dockerfile
+FROM    golang:1.18-buster as builder
+WORKDIR /app
+COPY    . ./
+RUN     go build -ldflags="-w -s" -o service ./cmd/auth-proxy
+```
+
+2. build the container:
+```shell
+docker build -t local.gcsp-ap.builder .
+```
+
+3. Run the container in interactive mode
+```shell
+docker run -it --rm -v $(pwd)/bin:/exports /bin/bash
+```
+
+4. Copy over the resulting binary to the mounted volume. 
+```shell
+cp /app/service /exports/gcsp-ap
+exit
+```
+
+5. Check the /bin folder.
+```shell
+ls -al bin | grep "gcsp-ap"
+```
+
+
+## Manual Deployments -Building and running the gCSP Auth Proxy (gCSP-AP) from source
 
 gCSP's Auth Proxy (gCSP-AP) adds an OIDC identity token generated from Compute Engine's metadata server process to outgoing requests to gCSP.  gCSP-AP is required when gCSP is deployed separately on a service that requires service-to-service authentication.  gCSP-AP designed to run as a background process in the same host that's serving your web application.  
 
