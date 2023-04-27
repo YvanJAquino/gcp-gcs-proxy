@@ -1,5 +1,4 @@
 # Cloud Storage Proxy (gCSP)
-
 Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's fully-managed object storage service.  gCSP's API endpoints map to some of Cloud Storage's JSON API endpoints to provide extra utility such as listing buckets, listing objects, and getting object metadata in addition to it's core functionality: getting object data (media) from GCS.  
 
 # Features
@@ -18,7 +17,6 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
 - Caching:  gCSP uses LRU caching by default.  Basic caching (random eviction) is also available; LFU caching is planned for a future release.
 
 # Target User Journeys
-
 | As a developer, I can't use authenticated browser downloads **(https://storage.cloud.google.com/*/*)** because my organization requires Data Access Audit Logging for Cloud Storage. |
 | :-- |
 | Data Access Audit Logging prevents developers from using authenticated browser downloads (access) for private/internal-only objects.  gCSP uses the  running service's attached service account to access Cloud Storage, side-stepping this issue. |
@@ -32,11 +30,9 @@ Cloud Storage Proxy (gCSP) is a reverse-proxy for Google Cloud Storage, gGCP's f
 | gCSP is a reverse-proxy for Cloud Storage; reverse proxies protect backend resources. Run as a standalone binary in the background (as a background process) of the same host that's serving your web application.  You can provide access by configuring proxy options within your JS Framework that'll proxy requests back to the locally running  service. Alternatively, you can run gCSP separately, decoupling its capabilities from the local running host (allowing for independent scaling), and requring service-to-service authentication. gCSP-AP, A local authentication proxy that add's a token to outgoing requests, makes this easier to implement. *Please note that this will not stop egress usage; that is calculated on a per byte basis of what's being rendered OUTSIDE OF GCP!*|
 
 # Deployment
-
 Deployment will depend on how you want to deploy - and to what platform you want to deploy to.
 
 ## Default Deployment (Cloud Run)
-
 The default deployment targets Cloud Run using Cloud Build.  Cloud Build will build the container, store it in the container registry (gcr.io/PROJECT_ID/gcp-gcs-proxy), and then deploy gCSP to Cloud Run with no CPU throttling and requiring authentication.  This deployment model is meant to be used in conjunction with gCSP-AP. 
 
 ```shell
@@ -45,9 +41,7 @@ cd gcp-gcs-proxy
 gcloud builds submit
 ```
 
-## Manual Deployments - Building the container with Docker
-
-You can manually build the container and store it in the Container Registry for usage on other compute platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
+## Manual Deployments - Building the container with DockerYou can manually build the container and store it in the Container Registry for usage on other compute platforms like Kubernetes Engine or Compute Engine by running COS (Container-Optimized OS).
 
 ```
 git clone https://github.com/YvanJAquino/gcp-gcs-proxy.git
@@ -57,7 +51,6 @@ docker push gcr.io/PROJECT_ID/gcp-gcs-proxy
 ```
 
 ## Manual Deployments - Building the proxy from source
-
 You can build the binary locally if you have Go 1.18 or greater installed.  This deployment method is ideal if you're going to run gCSP as background process on the same host that's serving your web application.  
 
 When containerizing your web application, you can use this snippet below in a separate build step to build the binary, copy it to the final execution step, and then run it in the background.  
@@ -69,7 +62,6 @@ go build -ldflags="-w -s" -o gcsp-proxy ./cmd/gcs-proxy
 ```
 
 ## Manual Deployments - Using Docker to build binaries if Go isn't installed locally.
-
 Docker is a powerful tool in the right hands.  If you don't have Go installed, you can wrap your shell scripts into a Dockerfile, mount a separate volume, and then copy the resulting binary to the mounted volume.
 
 1. create a new Dockerfile:
@@ -103,7 +95,6 @@ ls -al bin | grep "gcsp-ap"
 
 
 ## Manual Deployments -Building and running the gCSP Auth Proxy (gCSP-AP) from source
-
 gCSP's Auth Proxy (gCSP-AP) adds an OIDC identity token generated from Compute Engine's metadata server process to outgoing requests to gCSP.  gCSP-AP is required when gCSP is deployed separately on a service that requires service-to-service authentication.  gCSP-AP designed to run as a background process in the same host that's serving your web application.  
 
 
@@ -124,13 +115,11 @@ gCSP-AP can be configured through runtime environment variables.  These MUST be 
 | GCSP_TARGET_ADDR | gCSP's address | 
 
 # Testing
-
 Testing should be done incrementally, in steps, to ensure that each part of the system is operating as desired.
 
 Local testing requires that Go 1.18 or above is installed.
 
 ## Default Deployment (gCSP on Cloud Run with gCSP-AP)
-
 Begin by deploying using the default deployment.  
 
 ```shell
@@ -252,6 +241,12 @@ export default function Index() {
 	</>)
 }
 ```
+
+## Frameworks that use ExpressJS
+
+## Next.js
+Next.js documentation: https://nextjs.org/docs/api-reference/next.config.js/rewrites
+
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
