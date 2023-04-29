@@ -22,20 +22,23 @@ var (
 )
 
 func main() {
+	var p http.Handler
+	var err error
+
 	parent := context.Background()
 
 	signals := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
 	signalling := make(chan os.Signal, len(signals))
 	signal.Notify(signalling, signals...)
 
-	proxy, err := proxy.Default(parent)
+	p, err = proxy.Default(parent)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	server := &http.Server{
 		Addr:        ADDR,
-		Handler:     proxy,
+		Handler:     p,
 		BaseContext: func(l net.Listener) context.Context { return parent },
 	}
 
@@ -49,7 +52,7 @@ func main() {
 
 	sig := <-signalling
 	log.Printf("%s signal received, initiating graceful shutdown", strings.ToUpper(sig.String()))
-	shutCtx, cancel := context.WithTimeout(parent, time.Second * 5)
+	shutCtx, cancel := context.WithTimeout(parent, time.Second*5)
 	defer cancel()
 	err = server.Shutdown(shutCtx)
 	if err != nil && err != http.ErrServerClosed {
