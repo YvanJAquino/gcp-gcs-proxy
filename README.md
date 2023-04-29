@@ -185,6 +185,8 @@ go build -ldflags="-w -s" -o gcsp-ap ./cmd/auth-proxy
 
 # Integrating gCSP-AP with Modern Javascript Frameworks.
 
+gCSP-AP intercepts requests and inserts an Authorization header with a valid identity token.
+
 ## Frameworks that use Vite 
  
  Vite configuration documentation: https://vitejs.dev/config/
@@ -211,6 +213,7 @@ export default defineConfig({
 Render storage images within your application as if they were locally available objects within `<img>` tags.
 
 ```typescript
+// App.ts
 import { createEffect, createSignal } from "solid-js";
 
 async function listBuckets() {
@@ -245,9 +248,86 @@ export default function Index() {
 
 ## Frameworks that use ExpressJS
 
-## Next.js
+### Next.js
 Next.js documentation: https://nextjs.org/docs/api-reference/next.config.js/rewrites
 
+## ADVANCED: Manual web service calls  (Also known as "I Know Exactly What I'm Doing")
+
+gCSP-AP is the recommended way of accessing gCSP when authentication is required.  Nonethless, in the spirit of transparency, this section has to be included!
+
+With some knowledge of GCP, JS, a little wizardry, and some elbow grease you might not even need gCSP-AP to call gCSP.  As long as you have sufficient access to the server your application is hosted on, you can proxy requsts to the Metadata Server to create an id Token and then use that token to make subsequent web service calls (which also need to be proxied) to the appropriate endpoints(s).  
+
+You MUST proxy requests through your web server for the default deployment or any deployment that uses Cloud Run in --no-allow-unauthenticated (Require Authentication) mode because CORS preflight requests cannot be authenticated!
+
+```typescript
+// vite.config.ts for SolidJS
+export default defineConfig({
+  plugins: [solidPlugin()],
+  server: {
+    proxy: {
+      '/storage/v1/b': 'https://gcp-gcs-proxy-63ietzwyxq-uc.a.run.app/',
+      '/computeMetadata': 'http://metadata.google.internal/'
+    },
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  build: {
+    target: 'esnext',
+  },
+});
+```
+
+```typescript
+// App.ts
+import { createEffect, createSignal } from "solid-js";
+
+async function getIdToken() {
+	const gcspProxy = "https://gcp-gcs-proxy-63ietzwyxq-uc.a.run.app/"
+	const idTokenURL = `/computeMetadata/v1/instance/service-accounts/default/identity?audience=${gcspProxy}&format=full`;
+	const result = await fetch(idTokenURL, {
+		headers: {
+			'Metadata-Flavor': 'Google'
+		}
+	});
+	return await  result.text()
+}
+
+async function listBuckets(idToken: string) {
+	const listBucketsURL = '/storage/v1/b';
+	const result = await fetch(listBucketsURL, {
+		headers: {
+			'Authorization': `Bearer ${idToken}`
+		},
+	});
+	return await result.text()
+}
+
+export default function Index() {
+	const [token, setToken] = createSignal('')
+	const [buckets, setBuckets] = createSignal('')
+	createEffect(() => {
+		getIdToken()
+			.then(token => setToken(token));
+
+		listBuckets(token())
+			.then(bktList => setBuckets(bktList))
+
+	})
+	return (<>
+		<div>
+			<h1>TOKEN</h1><br/>
+			The token is: {token()}
+		</div>
+		<div>
+			<h1>Bucket List:</h1><br/>
+			The buckets are:<br/>
+			<pre>
+				{buckets()}
+			</pre>
+		</div>
+	</>)
+}
+```
 
 # Planned features
 - Advanced caching eviction strategies.  In particular:
